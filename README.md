@@ -1,3 +1,5 @@
+# This fork includes modifications to roadrecon/roadtools/roadrecon/gather.py to disable SSL certificate verification when using proxychains or other SOCKS proxies with self-signed certificates.
+
 # ROADtools 
 *(**R**ogue **O**ffice 365 and **A**zure (active) **D**irectory tools)*
 
