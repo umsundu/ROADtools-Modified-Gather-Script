@@ -27,16 +27,6 @@ from sqlalchemy.dialects.postgresql import insert as pginsert
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
-import ssl
-
-# Disable SSL verification
-ssl._create_default_https_context = ssl._create_unverified_context
-
-# Create SSL context for aiohttp
-ssl_context = ssl.create_default_context()
-ssl_context.check_hostname = False
-ssl_context.verify_mode = ssl.CERT_NONE
-
 warnings.simplefilter('ignore')
 token = None
 expiretime = None
@@ -563,7 +553,7 @@ async def run(args):
     engine = database.init(destroy_db, dburl=dburl)
     dumper = DataDumper(tenantid, '1.61-internal', engine=engine)
     if not args.skip_first_phase:
-        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as ahsession:
+        async with aiohttp.ClientSession() as ahsession:
             print('Starting data gathering phase 1 of 2 (collecting objects)')
             dumper.ahsession = ahsession
             tasks = []
@@ -654,7 +644,7 @@ async def run(args):
     totaldevices = dbsession.query(func.count(Device.objectId)).scalar()
     if totalgroups > MAX_GROUPS:
         print('Gathered {0} groups, switching to 3-phase approach for efficiency'.format(totalgroups))
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as ahsession:
+    async with aiohttp.ClientSession() as ahsession:
         if totalgroups > MAX_GROUPS:
             print('Starting data gathering phase 2 of 3 (collecting properties and relationships)')
         else:
@@ -684,7 +674,7 @@ async def run(args):
     tasks = []
     if totalgroups > MAX_GROUPS:
         print('Starting data gathering phase 3 of 3 (collecting group memberships and device owners)')
-        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as ahsession:
+        async with aiohttp.ClientSession() as ahsession:
             dumper.ahsession = ahsession
             queue = asyncio.Queue(maxsize=100)
             # Start the workers
